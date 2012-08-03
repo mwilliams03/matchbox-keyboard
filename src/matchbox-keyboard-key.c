@@ -578,6 +578,9 @@ mb_kbd_key_press (MBKeyboardKey *key)
               }
 
             key->press_flag = FALSE;
+#else
+            mb_kbd_toggle_state(key->kbd, MBKeyboardStateShifted);
+            mb_kbd_set_held_key(key->kbd, key);
 #endif
 	    break;
 	  case MBKeyboardKeyModMod1:
