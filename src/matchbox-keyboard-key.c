@@ -549,7 +549,7 @@ mb_kbd_key_press (MBKeyboardKey *key)
 	  case MBKeyboardKeyModShift:
 	    queue_full_kbd_redraw = True;
 #if WANT_GTK_WIDGET
-            if (key->press_flag)
+           if (key->press_flag)
               {
                 /*
                  * Keyboard is in caps state because of previous long shift
@@ -559,22 +559,30 @@ mb_kbd_key_press (MBKeyboardKey *key)
               }
             else
               {
+                if (key->press_timeout)
+                  g_source_remove (key->press_timeout);
+
                 /*
                  * Normal press on Shift; toggle the shift key state, then
                  * store the key so we can handle it correctly in the release
                  * function.
                  */
                 mb_kbd_toggle_state(key->kbd, MBKeyboardStateShifted);
-                mb_kbd_set_held_key(key->kbd, key);
 
                 /*
-                 * Add timeout to detect long press.
+                 * If Shift was just enabled we want to look for the long press.
+                 * If Shift is being toggled off, we are done.
                  */
-                if (key->press_timeout)
-                  g_source_remove (key->press_timeout);
+                if (mb_kbd_has_state(key->kbd, MBKeyboardStateShifted))
+                  {
+                    mb_kbd_set_held_key(key->kbd, key);
 
-                key->press_timeout =
-                  g_timeout_add (700, mb_kbd_key_shift_timeout, key);
+                    /*
+                     * Add timeout to detect long press.
+                     */
+                    key->press_timeout =
+                      g_timeout_add (700, mb_kbd_key_shift_timeout, key);
+                  }
               }
 
             key->press_flag = FALSE;
