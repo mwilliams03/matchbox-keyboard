@@ -126,6 +126,7 @@ typedef struct MBKeyboardConfigState
   Bool              error;
   char             *error_msg;
   int               error_lineno;
+  char             *lang;
   XML_Parser        parser;
 }
 MBKeyboardConfigState;
@@ -176,6 +177,7 @@ config_str_to_modtype(const char* str)
 static char*
 load_config_file (const char *basename,
                   char       *variant_in,
+                  char       *lang,
                   int         autolocale,
                   char      **path_out)
 {
@@ -184,7 +186,6 @@ load_config_file (const char *basename,
   char          *result;
   char          *country  = NULL;
   char          *variant  = NULL;
-  char          *lang     = NULL;
   int            n = 0, i = 0;
   char           path[1024]; 	/* XXX MAXPATHLEN */
 
@@ -210,12 +211,15 @@ load_config_file (const char *basename,
       return NULL;
     }
 
-  if (autolocale)
+  if (lang || autolocale)
     {
-      lang = getenv("MB_KBD_LANG");
+      if (autolocale)
+        {
+          lang = getenv("MB_KBD_LANG");
 
-      if (lang == NULL)
-        lang = getenv("LANG");
+          if (lang == NULL)
+            lang = getenv("LANG");
+        }
 
       if (lang)
         {
@@ -603,8 +607,8 @@ config_xml_start_cb(void *data, const char *tag, const char **attr)
             *p = 0;
         }
 
-      if ((loc = attr_get_val("auto-locale", attr)) &&
-          streq(loc, "no"))
+      if (state->lang || ((loc = attr_get_val("auto-locale", attr)) &&
+                          streq(loc, "no")))
         autoloc = 0;
 
       load_include (state, inc, autoloc);
@@ -631,7 +635,7 @@ load_include (MBKeyboardConfigState *state,
   XML_Parser  p, old_p;
   char        *data;
 
-  if (!(data = load_config_file (include, NULL, autolocale, NULL)))
+  if (!(data = load_config_file (include, NULL, state->lang, autolocale, NULL)))
     util_fatal_error("Couldn't find a keyboard config file\n");
 
   p = XML_ParserCreate(NULL);
@@ -662,13 +666,14 @@ load_include (MBKeyboardConfigState *state,
 }
 
 int
-mb_kbd_config_load(MBKeyboard *kbd, char *variant)
+mb_kbd_config_load(MBKeyboard *kbd, char *variant, char *lang)
 {
   char                  *data;
   XML_Parser             p;
   MBKeyboardConfigState *state;
 
-  if (!(data = load_config_file ("keyboard", variant, 1, &kbd->config_file)))
+  if (!(data = load_config_file ("keyboard", variant, lang, lang ? 0 : 1,
+                                 &kbd->config_file)))
     util_fatal_error("Couldn't find a keyboard config file\n");
 
   p = XML_ParserCreate(NULL);
@@ -686,6 +691,7 @@ mb_kbd_config_load(MBKeyboard *kbd, char *variant)
 
   state->keyboard = kbd;
   state->parser = p;
+  state->lang = lang;
 
   XML_SetElementHandler(p, config_xml_start_cb, NULL);
 

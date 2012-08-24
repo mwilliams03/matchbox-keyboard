@@ -52,7 +52,9 @@ mb_kbd_usage (char *progname)
           "   --rowspacing <integer>\n"
           "                         Pixel padding between keys in a row. 0 - 50"
           "   --colspacing <integer>\n"
-          "                         Pixel padding between keys in a column. 0 - 50");
+          "                         Pixel padding between keys in a column. 0 - 50"
+          "   --lang <locale string>\n"
+          "                         Force given locale when choosing layout.");
   fprintf(stderr, "\nmatchbox-keyboard %s \nCopyright (C) 2007 OpenedHand Ltd.\n", VERSION);  exit(-1);
 }
 
@@ -68,6 +70,7 @@ mb_kbd_new (int argc, char **argv, Bool widget, Window parent,
 {
   MBKeyboard *kb = NULL;
   char       *variant = NULL;
+  char       *lang = NULL;
   Bool        want_embedding = widget;
   Bool        want_daemon = False;
   int         i;
@@ -266,6 +269,26 @@ mb_kbd_new (int argc, char **argv, Bool widget, Window parent,
 	  continue;
 	}
 
+      if (!strcmp ("--lang", argv[i]))
+        {
+          char *p;
+
+          if (++i>=argc)
+            {
+              if (widget)
+                return NULL;
+              else
+                mb_kbd_usage (argv[0]);
+            }
+
+          lang = argv[i];
+
+          /* remove any encoding part */
+          if ((p = strchr (lang, '.')))
+            *p = 0;
+          continue;
+        }
+
       if (i == (argc-1) && argv[i][0] != '-')
 	variant = argv[i];
       else if (widget)
@@ -280,7 +303,7 @@ mb_kbd_new (int argc, char **argv, Bool widget, Window parent,
   if (!mb_kbd_ui_init(kb))
     return NULL;
 
-  if (!mb_kbd_config_load(kb, variant))
+  if (!mb_kbd_config_load(kb, variant, lang))
     return NULL;
 
   kb->selected_layout

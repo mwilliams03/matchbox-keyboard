@@ -654,7 +654,7 @@ mb_kbd_key_dump_key(MBKeyboardKey *key);
 /*** Config *****/
 
 int
-mb_kbd_config_load(MBKeyboard *kbd, char *varient);
+mb_kbd_config_load(MBKeyboard *kbd, char *varient, char *lang);
 
 
 /**** Util *****/
