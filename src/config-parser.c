@@ -611,7 +611,8 @@ config_xml_start_cb(void *data, const char *tag, const char **attr)
                           streq(loc, "no")))
         autoloc = 0;
 
-      load_include (state, inc, autoloc);
+      if (!load_include (state, inc, autoloc))
+        set_error (state, "Failed to load include");
     }
   else  if (streq(tag, "fragment"))
     {
@@ -623,7 +624,10 @@ config_xml_start_cb(void *data, const char *tag, const char **attr)
     {
       fprintf(stderr, "matchbox-keyboard:%s:%d: %s\n", state->keyboard->config_file,
                                               state->error_lineno, state->error_msg);
-      util_fatal_error("Error parsing\n");
+      if (!state->keyboard->is_widget)
+        util_fatal_error("Error parsing\n");
+      else
+        XML_StopParser(state->parser, 0);
     }
 }
 
@@ -634,14 +638,25 @@ load_include (MBKeyboardConfigState *state,
 {
   XML_Parser  p, old_p;
   char        *data;
+  int          retval = 1;
 
   if (!(data = load_config_file (include, NULL, state->lang, autolocale, NULL)))
-    util_fatal_error("Couldn't find a keyboard config file\n");
+    {
+      if (!state->keyboard->is_widget)
+        util_fatal_error("Couldn't find a keyboard config file\n");
+      else
+        return 0;
+    }
 
   p = XML_ParserCreate(NULL);
 
   if (!p)
-    util_fatal_error("Couldn't allocate memory for XML subparser\n");
+    {
+      if (!state->keyboard->is_widget)
+        util_fatal_error("Couldn't allocate memory for XML subparser\n");
+      else
+        return 0;
+    }
 
   old_p = state->parser;
   state->parser = p;
@@ -655,14 +670,21 @@ load_include (MBKeyboardConfigState *state,
 	    include,
 	    (int)XML_GetCurrentLineNumber(p),
 	    XML_ErrorString(XML_GetErrorCode(p)));
-    util_fatal_error("XML Parse failed.\n");
+
+    if (!state->keyboard->is_widget)
+      util_fatal_error("XML Parse failed.\n");
+    else
+      reval = 0;
   }
+
+  if (state->error)
+    retval = 0;
 
   state->parser = old_p;
 
   XML_ParserFree (p);
 
-  return 1;
+  return retval;
 }
 
 int
@@ -671,15 +693,26 @@ mb_kbd_config_load(MBKeyboard *kbd, char *variant, char *lang)
   char                  *data;
   XML_Parser             p;
   MBKeyboardConfigState *state;
+  int                    retval = 1;
 
   if (!(data = load_config_file ("keyboard", variant, lang, lang ? 0 : 1,
                                  &kbd->config_file)))
-    util_fatal_error("Couldn't find a keyboard config file\n");
+    {
+      if (!state->keyboard->is_widget)
+        util_fatal_error("Couldn't find a keyboard config file\n");
+      else
+        return 0;
+    }
 
   p = XML_ParserCreate(NULL);
 
   if (!p)
-    util_fatal_error("Couldn't allocate memory for XML parser\n");
+    {
+      if (!state->keyboard->is_widget)
+        util_fatal_error("Couldn't allocate memory for XML parser\n");
+      else
+        return 0;
+    }
 
   if (variant && !strstr(kbd->config_file, variant))
     fprintf(stderr,
@@ -705,11 +738,18 @@ mb_kbd_config_load(MBKeyboard *kbd, char *variant, char *lang)
 	    kbd->config_file,
 	    (int)XML_GetCurrentLineNumber(p),
 	    XML_ErrorString(XML_GetErrorCode(p)));
-    util_fatal_error("XML Parse failed.\n");
+
+    if (!state->keyboard->is_widget)
+      util_fatal_error("XML Parse failed.\n");
+    else
+      retval = 0;
   }
+
+  if (state->error)
+    retval = 0;
 
   XML_ParserFree (p);
 
-  return 1;
+  return retval;
 }
 
