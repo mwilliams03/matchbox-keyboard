@@ -674,7 +674,7 @@ load_include (MBKeyboardConfigState *state,
     if (!state->keyboard->is_widget)
       util_fatal_error("XML Parse failed.\n");
     else
-      reval = 0;
+      retval = 0;
   }
 
   if (state->error)
