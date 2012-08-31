@@ -805,7 +805,13 @@ mb_kbd_key_release(MBKeyboard *kbd, Bool cancel)
 
       if (mb_kbd_key_get_action_type(key, MBKeyboardKeyStateNormal) != MBKeyboardKeyActionModifier)
 	{
-	  if (mb_kbd_has_any_state(kbd))
+          /*
+           * If the key had a modifier set, other than Caps, we have to redraw
+           * the entire keyboard, since the modifier goes away with the key
+           * release.
+           */
+	  if (!mb_kbd_has_state (kbd, MBKeyboardStateCaps) &&
+              mb_kbd_has_any_state(kbd))
 	    {
 	      mb_kbd_remove_state(kbd, (MBKeyboardStateShifted|
 					MBKeyboardStateMod1|
