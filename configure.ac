@@ -198,26 +198,8 @@ dnl ------ Expat ------------------------------------------------------------
 
 dnl ------ Check for PNG ---------------------------------------------------
 
-AC_MSG_CHECKING(for libpng12)
-
-if $PKG_CONFIG --exists libpng12; then
-        AC_MSG_RESULT(yes)
-        PNG_LIBS=`$PKG_CONFIG --libs libpng12`
-        PNG_CFLAGS=`$PKG_CONFIG --cflags libpng12`
-	LIBRARY_REQUIRES="$LIBRARY_REQUIRES libpng12"
-else
-        AC_MSG_RESULT(no)
-        AC_CHECK_LIB([png], [png_create_read_struct],
-                      [have_png="yes"], [have_png="no"])
-
-        if test x$have_png=xyes && test x$have_png_h=xyes; then
-            PNG_LIBS="-lpng -lz"
-        else
-            AC_MSG_ERROR([*** Cannot find libpng12 ****])
-        fi
-
-	LIBRARY_EXTRA_LIBS="$LIBRARY_EXTRA_LIBS -lpng -lz"
-fi
+PKG_CHECK_MODULES(PNG, libpng)
+LIBRARY_REQUIRES="$LIBRARY_REQUIRES libpng"
 
 
 dnl ------ Debug Build ------------------------------------------------------
