@@ -28,7 +28,8 @@ struct _MbGtkKeyboardPrivate
   MBKeyboard  *kb;
   char       **argv;
 
-  guint disposed : 1;
+  guint disposed          : 1;
+  guint ensure_backbuffer : 1;
 };
 
 enum
@@ -109,8 +110,23 @@ mb_gtk_keyboard_size_allocate (GtkWidget *widget, GtkAllocation *allocation)
   if (widget->allocation.width == allocation->width &&
       widget->allocation.height == allocation->height)
     {
-      DBG ("Size allocate NOP (%d x %d)",
-           widget->allocation.width, widget->allocation.height);
+      /*
+       * If the ensure_backbuffer flag is set, i.e., when doing a
+       * map->unmap->map transition, ensure the back buffer is correctly set up,
+       * otherwise the cairo backend can end up sitting on the top of a stale
+       * drawable.
+       */
+      if (priv->ensure_backbuffer)
+        {
+          priv->ensure_backbuffer = FALSE;
+          mb_kbd_ui_resize_backbuffer (priv->kb->ui);
+        }
+      else
+        {
+          DBG ("Size allocate NOP (%d x %d)",
+               widget->allocation.width, widget->allocation.height);
+        }
+
       return;
     }
 
@@ -165,6 +181,12 @@ mb_gtk_keyboard_unmap (GtkWidget *widget)
 
   DBG ("Umapping kbd window 0x%x",
        (unsigned int) mb_keyboard_get_xwindow (priv->kb));
+
+  /*
+   * Mark us for forced backbuffer set up so that if we get mapped again at the
+   * same size, we don't end up with a stale back buffer.
+   */
+  priv->ensure_backbuffer = TRUE;
 
   if (GTK_WIDGET_CLASS (mb_gtk_keyboard_parent_class)->unmap)
     GTK_WIDGET_CLASS (mb_gtk_keyboard_parent_class)->unmap (widget);
