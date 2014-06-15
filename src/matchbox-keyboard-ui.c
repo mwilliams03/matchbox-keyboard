@@ -1279,6 +1279,7 @@ mb_kbd_ui_handle_widget_xevent (MBKeyboardUI *ui, XEvent *xev)
       if (xev->xmap.window == ui->xwin)
         {
           DBG("Got MapNotify for 0x%x", (unsigned int) ui->xwin);
+          XSetWindowBackgroundPixmap (ui->xdpy, ui->xwin, ui->backbuffer);
           mb_kbd_ui_redraw(ui);
         }
       break;
