@@ -42,7 +42,6 @@ typedef struct
   long                inputMode;
   unsigned long       status;
 } PropMotifWmHints;
-
 struct MBKeyboardUI
 {
   Display            *xdpy;
@@ -785,6 +784,10 @@ mb_kbd_ui_resources_create(MBKeyboardUI  *ui)
            * going to match the desktop width, it is a better approximation, and
            * the actual resize is going to be less ugly later on.
            */
+
+
+        desk_width  = desk_width  * (divider/100);
+        desk_height = desk_height * (divider/100);
           if (desk_width > ui->xwin_width)
             {
               mb_kbd_ui_resize(ui, -1, -1,

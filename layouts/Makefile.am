@@ -16,7 +16,10 @@ IMGS  = arrow.png      arrows.png       \
         super_9.png     sub_9.png       \
         super_plus.png 	sub_plus.png    \
         super_minus.png	sub_minus.png   \
-        delta_cap.png	degree.png
+        delta_cap.png	degree.png	\
+        key-backspace.png key-down.png  \
+        key-up.png      key-left.png    \
+        key-right.png   key-tab.png
 
 fragment_in_files = \
 		base-fragment.xml.in	   \
@@ -52,6 +55,7 @@ variant_in_files = $(fragment_in_files) \
 		keyboard-numpad-extended.xml.in \
 		keyboard-numpad-small.xml.in    \
 		keyboard-internet.xml.in \
+		keyboard-extended.xml.in \
                   $(NULL)
 
 %.xml.tmp: %.xml.in

@@ -28,6 +28,7 @@
 extern Display *mb_xdpy;
 extern int      mb_xscreen;
 extern Window   mb_xroot;
+float divider = 99;
 
 /*
  * X Event processing.

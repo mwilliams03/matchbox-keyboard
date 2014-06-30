@@ -70,7 +70,7 @@
 #define MARK() DBG("mark")
 
 extern Display *mb_xdpy;
-
+extern float divider;
 typedef void*         pointer;
 typedef unsigned char uchar ;
 typedef Bool          boolean ;

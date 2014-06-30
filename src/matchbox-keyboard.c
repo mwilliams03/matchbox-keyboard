@@ -50,11 +50,13 @@ mb_kbd_usage (char *progname)
           "   --fontvariant <variant1:variant2>\n"
           "                         Colon (:) delimited list of Font variants to apply (ie. bold:mono:italic)\n"
           "   --rowspacing <integer>\n"
-          "                         Pixel padding between keys in a row. 0 - 50"
+          "                         Pixel padding between keys in a row. 0 - 50\n"
           "   --colspacing <integer>\n"
-          "                         Pixel padding between keys in a column. 0 - 50"
+          "                         Pixel padding between keys in a column. 0 - 50\n"
           "   --lang <locale string>\n"
-          "                         Force given locale when choosing layout.");
+          "                         Force given locale when choosing layout.\n"
+          "   -s,--size <interger>\n"
+          "                         Set the size of the keyboard based on the width of the display, in percentage.\n");
   fprintf(stderr, "\nmatchbox-keyboard %s \nCopyright (C) 2007 OpenedHand Ltd.\n", VERSION);  exit(-1);
 }
 
@@ -140,6 +142,23 @@ mb_kbd_new (int argc, char **argv, Bool widget, Window parent,
           want_daemon = True;
           continue;
         }
+
+      if (!strcmp ("-s", argv[i]) || !strcmp ("--size", argv[i]))
+ {
+          if (++i>=argc)
+            {
+              if (!widget)
+                mb_kbd_usage (argv[0]);
+            }
+          else
+		{
+		divider = strtol (argv[i], NULL, 0);
+		if (divider >99) divider=99;
+		}
+          continue;
+        }
+
+
 
       if (!strcmp ("--fontfamily", argv[i]))
         {
